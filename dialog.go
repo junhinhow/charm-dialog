@@ -1,7 +1,7 @@
-// Package dialog fornece caixas de dialogo modais para aplicacoes Bubble Tea.
+// Package dialog fornece caixas de diálogo modais para aplicações Bubble Tea.
 //
-// Suporta dialogos de confirmacao, alerta, entrada de texto e customizados,
-// com estilizacao via lipgloss.
+// Suporta diálogos de confirmação, alerta, entrada de texto e customizados,
+// com estilização via lipgloss.
 package dialog
 
 import (
@@ -10,35 +10,35 @@ import (
 	"charm.land/lipgloss/v2"
 )
 
-// DialogType representa o tipo do dialogo.
+// DialogType representa o tipo do diálogo.
 type DialogType int
 
 const (
-	// TypeConfirm dialogo de confirmacao com botoes Sim/Nao.
+	// TypeConfirm diálogo de confirmação com botões Sim/Não.
 	TypeConfirm DialogType = iota
-	// TypeAlert dialogo de alerta com botao OK.
+	// TypeAlert diálogo de alerta com botão OK.
 	TypeAlert
-	// TypeInput dialogo com campo de entrada de texto.
+	// TypeInput diálogo com campo de entrada de texto.
 	TypeInput
-	// TypeCustom dialogo com botoes personalizados.
+	// TypeCustom diálogo com botões personalizados.
 	TypeCustom
 )
 
-// Styles agrupa os estilos usados para renderizar o dialogo.
+// Styles agrupa os estilos usados para renderizar o diálogo.
 type Styles struct {
-	// TitleStyle estilo do titulo do dialogo.
+	// TitleStyle estilo do título do diálogo.
 	TitleStyle lipgloss.Style
-	// MessageStyle estilo da mensagem do dialogo.
+	// MessageStyle estilo da mensagem do diálogo.
 	MessageStyle lipgloss.Style
-	// ButtonStyle estilo dos botoes inativos.
+	// ButtonStyle estilo dos botões inativos.
 	ButtonStyle lipgloss.Style
-	// ActiveButtonStyle estilo do botao selecionado.
+	// ActiveButtonStyle estilo do botão selecionado.
 	ActiveButtonStyle lipgloss.Style
-	// BorderStyle estilo da borda do dialogo.
+	// BorderStyle estilo da borda do diálogo.
 	BorderStyle lipgloss.Style
 }
 
-// DefaultStyles retorna os estilos padrao para o dialogo.
+// DefaultStyles retorna os estilos padrão para o diálogo.
 func DefaultStyles() Styles {
 	return Styles{
 		TitleStyle: lipgloss.NewStyle().
@@ -66,27 +66,27 @@ func DefaultStyles() Styles {
 	}
 }
 
-// Dialog representa uma caixa de dialogo modal.
+// Dialog representa uma caixa de diálogo modal.
 type Dialog struct {
-	// Title titulo exibido no topo do dialogo.
+	// Title título exibido no topo do diálogo.
 	Title string
-	// Message mensagem principal do dialogo.
+	// Message mensagem principal do diálogo.
 	Message string
-	// Buttons lista de rotulos dos botoes.
+	// Buttons lista de rótulos dos botões.
 	Buttons []string
-	// Selected indice do botao atualmente selecionado.
+	// Selected índice do botão atualmente selecionado.
 	Selected int
-	// Type tipo do dialogo.
+	// Type tipo do diálogo.
 	Type DialogType
 	// InputValue valor do campo de entrada (apenas para TypeInput).
 	InputValue string
 	// InputPrompt prompt exibido antes do campo de entrada.
 	InputPrompt string
-	// Styles estilos de renderizacao.
+	// Styles estilos de renderização.
 	Styles Styles
 }
 
-// NewConfirm cria um dialogo de confirmacao com botoes "Yes" e "No".
+// NewConfirm cria um diálogo de confirmação com botões "Yes" e "No".
 func NewConfirm(title, message string) Dialog {
 	return Dialog{
 		Title:    title,
@@ -98,7 +98,7 @@ func NewConfirm(title, message string) Dialog {
 	}
 }
 
-// NewAlert cria um dialogo de alerta com botao "OK".
+// NewAlert cria um diálogo de alerta com botão "OK".
 func NewAlert(title, message string) Dialog {
 	return Dialog{
 		Title:    title,
@@ -110,7 +110,7 @@ func NewAlert(title, message string) Dialog {
 	}
 }
 
-// NewInput cria um dialogo com campo de entrada de texto.
+// NewInput cria um diálogo com campo de entrada de texto.
 func NewInput(title, prompt string) Dialog {
 	return Dialog{
 		Title:       title,
@@ -123,7 +123,7 @@ func NewInput(title, prompt string) Dialog {
 	}
 }
 
-// NewCustom cria um dialogo com botoes personalizados.
+// NewCustom cria um diálogo com botões personalizados.
 func NewCustom(title, message string, buttons []string) Dialog {
 	return Dialog{
 		Title:    title,
@@ -135,27 +135,34 @@ func NewCustom(title, message string, buttons []string) Dialog {
 	}
 }
 
-// WithStyles substitui os estilos do dialogo.
-func (d Dialog) WithStyles(s Styles) Dialog {
+// WithStyles substitui os estilos do diálogo.
+//
+// O método tem receptor por ponteiro: os estilos são aplicados ao diálogo
+// original, portanto não é preciso reatribuir o resultado. Uma cópia do
+// diálogo também é devolvida, o que permite o uso encadeado:
+//
+//	d := dialog.NewConfirm("Título", "Mensagem")
+//	d = d.WithStyles(estilos)
+func (d *Dialog) WithStyles(s Styles) Dialog {
 	d.Styles = s
-	return d
+	return *d
 }
 
-// NextButton avanca a selecao para o proximo botao.
+// NextButton avança a seleção para o próximo botão.
 func (d *Dialog) NextButton() {
 	if d.Selected < len(d.Buttons)-1 {
 		d.Selected++
 	}
 }
 
-// PrevButton retrocede a selecao para o botao anterior.
+// PrevButton retrocede a seleção para o botão anterior.
 func (d *Dialog) PrevButton() {
 	if d.Selected > 0 {
 		d.Selected--
 	}
 }
 
-// SelectedButton retorna o rotulo do botao selecionado.
+// SelectedButton retorna o rótulo do botão selecionado.
 func (d Dialog) SelectedButton() string {
 	if d.Selected >= 0 && d.Selected < len(d.Buttons) {
 		return d.Buttons[d.Selected]
@@ -163,47 +170,17 @@ func (d Dialog) SelectedButton() string {
 	return ""
 }
 
-// Render renderiza o dialogo como string centralizada na largura fornecida.
+// Render renderiza o diálogo como string centralizada na largura fornecida.
+//
+// Quando width é maior que zero, o conteúdo é quebrado para caber nessa
+// largura: a saída nunca ultrapassa a largura pedida. Valores menores ou
+// iguais a zero renderizam o diálogo com a largura natural.
 func (d Dialog) Render(width int) string {
-	s := d.Styles
-
-	// Renderiza titulo
-	titleStr := s.TitleStyle.Render(d.Title)
-
-	// Renderiza mensagem ou prompt de entrada
-	var bodyStr string
-	if d.Type == TypeInput {
-		promptLine := s.MessageStyle.Render(d.InputPrompt)
-		inputLine := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Underline(true).
-			Render(d.InputValue + "_")
-		bodyStr = promptLine + "\n" + inputLine
-	} else {
-		bodyStr = s.MessageStyle.Render(d.Message)
+	if width < 0 {
+		width = 0
 	}
 
-	// Renderiza botoes
-	var buttons []string
-	for i, btn := range d.Buttons {
-		if i == d.Selected {
-			buttons = append(buttons, s.ActiveButtonStyle.Render(btn))
-		} else {
-			buttons = append(buttons, s.ButtonStyle.Render(btn))
-		}
-	}
-	buttonsStr := lipgloss.JoinHorizontal(lipgloss.Center, buttons...)
-
-	// Monta conteudo interno
-	content := lipgloss.JoinVertical(lipgloss.Center,
-		titleStr,
-		bodyStr,
-		"",
-		buttonsStr,
-	)
-
-	// Aplica borda
-	boxed := s.BorderStyle.Render(content)
+	boxed := d.renderBox(width)
 
 	// Centraliza horizontalmente
 	if width > 0 {
@@ -213,32 +190,148 @@ func (d Dialog) Render(width int) string {
 	return boxed
 }
 
-// RenderOverlay renderiza o dialogo centralizado vertical e horizontalmente
-// dentro das dimensoes fornecidas, util para sobrepor em telas existentes.
+// RenderOverlay renderiza o diálogo centralizado vertical e horizontalmente
+// dentro das dimensões fornecidas, útil para sobrepor em telas existentes.
+//
+// A saída tem exatamente height linhas (sem "\n" ao final) e nenhuma linha
+// ultrapassa a largura informada. Quando o diálogo é mais alto que a área
+// disponível, o conteúdo é truncado.
 func (d Dialog) RenderOverlay(width, height int) string {
-	rendered := d.Render(0)
+	if width < 0 {
+		width = 0
+	}
+	if height < 0 {
+		height = 0
+	}
+	if height == 0 {
+		return ""
+	}
 
-	// Calcula linhas para centralizar verticalmente
-	lines := strings.Count(rendered, "\n") + 1
+	lines := strings.Split(d.renderBox(width), "\n")
+
+	// O diálogo não pode ser mais alto que a área disponível.
+	if len(lines) > height {
+		lines = lines[:height]
+	}
+
+	// Centraliza verticalmente: o espaço restante é dividido entre o topo e
+	// a base, de forma que a soma das duas margens seja exata.
 	topPad := 0
-	if height > lines {
-		topPad = (height - lines) / 2
+	if height > len(lines) {
+		topPad = (height - len(lines)) / 2
 	}
+	bottomPad := height - len(lines) - topPad
 
-	var b strings.Builder
-	for range topPad {
-		b.WriteString(strings.Repeat(" ", width) + "\n")
-	}
-
-	// Centraliza cada linha horizontalmente
-	for _, line := range strings.Split(rendered, "\n") {
-		lineWidth := lipgloss.Width(line)
-		pad := 0
-		if width > lineWidth {
-			pad = (width - lineWidth) / 2
+	// Centraliza horizontalmente o bloco inteiro do diálogo (e não cada
+	// linha isoladamente), para que a borda e o conteúdo fiquem alinhados.
+	dialogWidth := 0
+	for _, line := range lines {
+		if w := lipgloss.Width(line); w > dialogWidth {
+			dialogWidth = w
 		}
-		b.WriteString(strings.Repeat(" ", pad) + line + "\n")
+	}
+	leftPad := ""
+	if width > dialogWidth {
+		leftPad = strings.Repeat(" ", (width-dialogWidth)/2)
 	}
 
-	return b.String()
+	// As linhas de margem são preenchidas com espaços para que a saída não
+	// termine com uma quebra de linha extra.
+	blankLine := ""
+	if width > 0 {
+		blankLine = strings.Repeat(" ", width)
+	}
+
+	out := make([]string, 0, height)
+	for range topPad {
+		out = append(out, blankLine)
+	}
+	for _, line := range lines {
+		out = append(out, leftPad+line)
+	}
+	for range bottomPad {
+		out = append(out, blankLine)
+	}
+
+	return strings.Join(out, "\n")
+}
+
+// renderBox renderiza o diálogo com a borda, limitando a largura total a
+// maxWidth quando ela é maior que zero.
+//
+// O limite é aplicado aos blocos internos antes da borda, para que a
+// mensagem longa seja quebrada em várias linhas em vez de estourar a tela.
+func (d Dialog) renderBox(maxWidth int) string {
+	s := d.Styles
+	frame := s.BorderStyle.GetHorizontalFrameSize()
+
+	// Conteúdo natural, sem limite de largura.
+	content := d.renderContent(0)
+
+	// Só restringe quando o conteúdo não cabe: assim um diálogo curto continua
+	// sendo exibido com a largura natural.
+	if maxWidth > 0 && lipgloss.Width(content)+frame > maxWidth {
+		inner := maxWidth - frame
+		if inner < 1 {
+			inner = 1
+		}
+		content = d.renderContent(inner)
+	}
+
+	return s.BorderStyle.Render(content)
+}
+
+// renderContent monta o conteúdo interno do diálogo (sem a borda).
+//
+// Quando inner é maior que zero, cada bloco é limitado a essa largura.
+func (d Dialog) renderContent(inner int) string {
+	s := d.Styles
+
+	titleStyle := s.TitleStyle
+	messageStyle := s.MessageStyle
+	if inner > 0 {
+		titleStyle = titleStyle.Width(inner)
+		messageStyle = messageStyle.Width(inner)
+	}
+
+	// Renderiza título
+	titleStr := titleStyle.Render(d.Title)
+
+	// Renderiza mensagem ou prompt de entrada
+	var bodyStr string
+	if d.Type == TypeInput {
+		inputLine := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Underline(true).
+			Render(d.InputValue + "_")
+
+		// Prompt e campo são renderizados juntos: assim o padding vertical do
+		// MessageStyle fica ao redor do bloco, sem criar uma linha em branco
+		// entre o prompt e o campo.
+		bodyStr = messageStyle.Render(d.InputPrompt + "\n" + inputLine)
+	} else {
+		bodyStr = messageStyle.Render(d.Message)
+	}
+
+	// Renderiza botões
+	var buttons []string
+	for i, btn := range d.Buttons {
+		style := s.ButtonStyle
+		if i == d.Selected {
+			style = s.ActiveButtonStyle
+		}
+		buttons = append(buttons, style.Render(btn))
+	}
+	buttonsStr := lipgloss.JoinHorizontal(lipgloss.Center, buttons...)
+	if inner > 0 {
+		buttonsStr = lipgloss.NewStyle().Width(inner).Render(buttonsStr)
+	}
+
+	// Monta conteúdo interno
+	return lipgloss.JoinVertical(lipgloss.Center,
+		titleStr,
+		bodyStr,
+		"",
+		buttonsStr,
+	)
 }
